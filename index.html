@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Menu Trò Chơi</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>🎮 Chọn Trò Chơi</h1>
+  <div class="shape-bg circle-red"></div>
+  <div class="shape-bg square-purple"></div>
+  <div class="shape-bg triangle-green"></div>
+  <div class="shape-bg hex-orange"></div>
+  <div class="menu-container">
+    <audio id="bgm" autoplay loop muted>
+      <source src="music/background.mp3" type="audio/mpeg">
+    </audio>
+    
+    <button id="soundToggle" title="Bật/Tắt âm thanh">🔇</button>
+    
+  <style>
+    #soundToggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      background: white;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      z-index: 9999;
+    }
+  
+    #soundToggle:hover {
+      background: #f0f0f0;
+    }
+  </style>
+  <script>
+    const bgm = document.getElementById("bgm");
+    const btn = document.getElementById("soundToggle");
+  
+    btn.addEventListener("click", () => {
+      bgm.muted = !bgm.muted;
+      btn.textContent = bgm.muted ? "🔇" : "🔊";
+    });
+  
+    // Khi người dùng lần đầu tương tác -> phát nhạc
+    window.addEventListener('click', () => {
+      bgm.play();
+    }, { once: true });
+  </script>
+  
+  <script>
+    window.addEventListener('click', () => {
+      document.getElementById("bgm").play();
+    }, { once: true });
+  </script>
+
+    <button class="game-button" onclick="location.href='game1.html'">
+       🎯 Chọn đúng hình
+    </button>
+
+    <button class="game-button" onclick="location.href='match-shape.html'">
+      🔗 Nối hình với tên
+    </button>
+
+    <button class="game-button" onclick="location.href='shape-fit.html'">
+      📦 Kéo thả hình
+    </button>
+
+    <button class="game-button" onclick="location.href='color-shape.html'">
+      🎨 Tô màu đúng hình
+    </button>
+  </div>
+
+  <!-- <script src="script.js"></script> --> <!-- Bỏ dấu comment nếu cần -->
+</body>
+</html>

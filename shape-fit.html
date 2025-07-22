@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Kéo Hình Vào Đúng Khung</title>
+  <link rel="stylesheet" href="shape-fit.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <button id="backBtn" onclick="location.href='index.html'" title="Quay về menu"><i class="fa-solid fa-arrow-left"></i></button>
+  <audio id="bgm" autoplay loop muted>
+    <source src="music/background.mp3" type="audio/mpeg">
+  </audio>
+  
+  <button id="soundToggle" title="Bật/Tắt âm thanh">🔇</button>
+  <script>
+    window.addEventListener('click', () => {
+      document.getElementById("bgm").play();
+    }, { once: true });
+  </script>
+  <style>
+    #soundToggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      background: white;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      z-index: 9999;
+    }
+  
+    #soundToggle:hover {
+      background: #f0f0f0;
+    }
+  </style>
+  <script>
+    const bgm = document.getElementById("bgm");
+    const btn = document.getElementById("soundToggle");
+  
+    btn.addEventListener("click", () => {
+      bgm.muted = !bgm.muted;
+      btn.textContent = bgm.muted ? "🔇" : "🔊";
+    });
+  
+    // Khi người dùng lần đầu tương tác -> phát nhạc
+    window.addEventListener('click', () => {
+      bgm.play();
+    }, { once: true });
+  </script>
+  
+  <h2>Kéo Hình Vào Đúng Khung</h2>
+  <div class="game-container">
+    <div class="shapes" id="draggables">
+      <!-- Hình học kéo được -->
+      <div class="shape circle" draggable="true" data-shape="Hình tròn"></div>
+      <div class="shape square" draggable="true" data-shape="Hình vuông"></div>
+      <div class="shape triangle" draggable="true" data-shape="Hình tam giác"></div>
+    </div>
+    <div class="targets">
+      <!-- Khung đích đúng -->
+      <div class="target" data-accept="Hình tam giác"></div>
+      <div class="target" data-accept="Hình tròn"></div>
+      <div class="target" data-accept="Hình vuông"></div>
+    </div>
+  </div>
+  <script src="shape-fit.js"></script>
+</body>
+</html>

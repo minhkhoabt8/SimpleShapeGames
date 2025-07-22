@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Chọn đúng hình</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <button id="backBtn" onclick="location.href='index.html'" title="Quay về menu"><i class="fa-solid fa-arrow-left"></i></button>
+    <audio id="bgm" autoplay loop muted>
+      <source src="music/background.mp3" type="audio/mpeg">
+    </audio>
+    
+    <button id="soundToggle" title="Bật/Tắt âm thanh">🔇</button>
+    
+    <script>
+      window.addEventListener('click', () => {
+        document.getElementById("bgm").play();
+      }, { once: true });
+    </script>
+    <script>
+      const bgm = document.getElementById("bgm");
+      const btn = document.getElementById("soundToggle");
+    
+      btn.addEventListener("click", () => {
+        bgm.muted = !bgm.muted;
+        btn.textContent = bgm.muted ? "🔇" : "🔊";
+      });
+    
+      // Khi người dùng lần đầu tương tác -> phát nhạc
+      window.addEventListener('click', () => {
+        bgm.play();
+      }, { once: true });
+    </script>
+    
+    <style>
+      #soundToggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        font-size: 24px;
+        background: white;
+        border: 2px solid #ccc;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        cursor: pointer;
+        z-index: 9999;
+      }
+    
+      #soundToggle:hover {
+        background: #f0f0f0;
+      }
+    </style>
+  <h2>Chọn đúng hình: <span id="target-shape"></span></h2>
+  <div id="shapes-container"></div>
+  <button onclick="checkAnswer()">Kiểm tra</button>
+  <!-- Popup -->
+    <div id="popup" class="popup">
+    <div class="popup-content" id="popup-content">
+      <span class="close-btn" onclick="closePopup()">×</span>
+      <p id="popup-message"></p>
+    </div>
+  </div>
+  <script src="game1.js"></script>
+</body>
+</html>

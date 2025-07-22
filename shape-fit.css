@@ -1,0 +1,105 @@
+
+body {
+  font-family: sans-serif;
+  background: #f2f2f2;
+  text-align: center;
+  padding: 30px;
+}
+
+#backBtn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 28px;
+  background: #eee;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+}
+
+.game-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-top: 60px;
+  gap: 60px;
+}
+
+.shapes, .targets {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+}
+
+.shape, .target {
+  width: 160px;
+  height: 160px;
+  background: lightgray;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  font-size: 48px;
+}
+
+.shape.circle { border-radius: 50%; background: red; }
+.shape.square { background: blue; }
+.shape.triangle {
+  width: 0;
+  height: 0;
+  background: transparent;
+  border-left: 80px solid transparent;
+  border-right: 80px solid transparent;
+  border-bottom: 160px solid orange;
+}
+
+.target::after {
+  content: attr(data-accept);
+  color: #666;
+  font-size: 20px;
+  text-transform: capitalize;
+}
+
+
+#backBtn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 24px;
+  background: #eee;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+#backBtn:hover {
+  background-color: #0056b3;
+  transform: scale(1.1);
+}
+#backBtn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: 48px;
+  height: 48px;
+  font-size: 28px;              /* Tăng kích cỡ chữ */
+  font-weight: 900;             /* Đậm hơn nữa */
+  color: #ffffff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  z-index: 9999;
+  transition: background-color 0.2s, transform 0.2s;
+  
+  display: flex;                /* Căn giữa mũi tên */
+  align-items: center;
+  justify-content: center;
+  line-height: 1;               /* Giảm khoảng cách dọc */
+  padding: 0;
+}

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Nối hình với tên (kéo‑thả + dây + popup)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; }
+    .container { display: flex; justify-content: space-around; margin-top: 40px; }
+    .shapes, .labels { display: flex; flex-direction: column; gap: 40px; }
+    .shape-box, .label-box {
+      width: 150px; height: 150px;
+      display: flex; justify-content: center; align-items: center;
+    }
+    .shape, .label-box { cursor: grab; }
+    .label-box {
+      font-size: 18px; background: #f0f0f0;
+      border-radius: 8px; user-select: none;
+      border: 2px dashed transparent;
+    }
+    .inside {
+        /* hình to lên */
+      width: 150px; height: 150px;
+      display: flex; justify-content: center; align-items: center;
+    }
+    .circle {
+        background: red;
+        border-radius: 50%;
+        width: 150px;
+        height: 150px;
+    }
+    .square { 
+        background: blue;
+        background: blue;
+        /* hình to lên */
+        width: 150px;
+        height: 150px;
+    }
+    
+    .rectangle {
+        background: green;
+        width: 184px;   /* 160 * 1.15 */
+        height: 92px;   /* 80 * 1.15 */
+    }
+
+    .triangle {
+      width: 0; height: 0;
+      border-left: 70px solid transparent;
+      border-right: 70px solid transparent;
+      border-bottom: 140px solid orange;
+    }
+    svg { position: absolute; top: 0; left: 0; pointer-events: none; }
+    #checkBtn { margin-top: 30px; padding: 10px 20px; font-size: 18px; }
+
+    svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+}
+
+    /* Popup */
+    .popup {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex; justify-content: center; align-items: center;
+      display: none;
+    }
+    .popup-content {
+      background: white; padding: 30px 50px;
+      border-radius: 12px; font-size: 20px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    .popup-content button {
+      margin-top: 20px; padding: 8px 20px;
+      font-size: 16px;
+    }
+    .popup-content.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 2px solid #28a745;
+    }
+
+    .popup-content.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 2px solid #dc3545;
+    }
+
+    #backBtn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: 48px;
+  height: 48px;
+  font-size: 28px;              /* Tăng kích cỡ chữ */
+  font-weight: 900;             /* Đậm hơn nữa */
+  color: #ffffff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  z-index: 9999;
+  transition: background-color 0.2s, transform 0.2s;
+  
+  display: flex;                /* Căn giữa mũi tên */
+  align-items: center;
+  justify-content: center;
+  line-height: 1;               /* Giảm khoảng cách dọc */
+  padding: 0;
+}
+
+
+#backBtn:hover {
+  background-color: #0056b3;
+  transform: scale(1.1);
+}
+
+  </style>
+</head>
+
+  
+<body>
+
+    <button id="backBtn" onclick="location.href='index.html'" title="Quay về menu"><i class="fa-solid fa-arrow-left"></i></button>
+    <audio id="bgm" autoplay loop muted>
+      <source src="music/background.mp3" type="audio/mpeg">
+    </audio>
+    
+    <button id="soundToggle" title="Bật/Tắt âm thanh">🔇</button>
+
+    <script>
+      window.addEventListener('click', () => {
+        document.getElementById("bgm").play();
+      }, { once: true });
+    </script>
+    <style>
+  #soundToggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 24px;
+    background: white;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    z-index: 9999;
+  }
+
+  #soundToggle:hover {
+    background: #f0f0f0;
+  }
+</style>
+    <script>
+      const bgm = document.getElementById("bgm");
+      const btn = document.getElementById("soundToggle");
+    
+      btn.addEventListener("click", () => {
+        bgm.muted = !bgm.muted;
+        btn.textContent = bgm.muted ? "🔇" : "🔊";
+      });
+    
+      // Khi người dùng lần đầu tương tác -> phát nhạc
+      window.addEventListener('click', () => {
+        bgm.play();
+      }, { once: true });
+    </script>
+  <h2>Nối đúng hình với tên</h2>
+  <div class="container">
+    <div class="shapes" id="shapes"></div>
+    <div class="labels" id="labels"></div>
+  </div>
+  <svg id="svg"></svg>
+  <button id="checkBtn">Kiểm tra</button>
+
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <div id="popup-text"></div>
+      <button onclick="closePopup()">Đóng</button>
+    </div>
+  </div>
+
+  <script>
+    const shapesData = [
+      { name: "tròn", className: "circle" },
+      { name: "vuông", className: "square" },
+      { name: "chữ nhật", className: "rectangle" },
+      { name: "tam giác", className: "triangle" }
+    ];
+  
+    function shuffle(array) {
+      return [...array].sort(() => Math.random() - 0.5);
+    }
+  
+    const shapes = shuffle(shapesData);
+    const labels = shuffle(shapesData);
+  
+    const shapesContainer = document.getElementById("shapes");
+    const labelsContainer = document.getElementById("labels");
+    const svg = document.getElementById("svg");
+    const mapping = {}; // { shapeId: labelName }
+  
+    let dragLabel = null;
+  
+    // Khởi tạo các hình dạng
+    shapes.forEach((shape, i) => {
+      const box = document.createElement("div");
+      box.className = "shape-box";
+      box.id = `shape_${i}`;
+  
+      const inside = document.createElement("div");
+      inside.className = `inside ${shape.className}`;
+      inside.dataset.name = shape.name;
+  
+      box.appendChild(inside);
+      shapesContainer.appendChild(box);
+    });
+  
+    // Khởi tạo các nhãn tên
+    labels.forEach((label, i) => {
+      const box = document.createElement("div");
+      box.className = "label-box";
+      box.id = `label_${i}`;
+      box.textContent = label.name;
+      box.draggable = true;
+      box.dataset.name = label.name;
+  
+      box.addEventListener("dragstart", (ev) => {
+        dragLabel = ev.target;
+        ev.dataTransfer.setData("text/plain", label.name);
+      });
+  
+      labelsContainer.appendChild(box);
+    });
+  
+    // Xử lý kéo – thả
+    document.querySelectorAll(".shape-box").forEach((shapeBox) => {
+      shapeBox.addEventListener("dragover", (ev) => ev.preventDefault());
+  
+      shapeBox.addEventListener("drop", (ev) => {
+        ev.preventDefault();
+        const name = ev.dataTransfer.getData("text");
+
+        // Loại bỏ mọi kết nối cũ đang dùng label này
+        for (let key in mapping) {
+        if (mapping[key] === name) {
+            delete mapping[key];
+                }
+            }
+        // Cập nhật ánh xạ cho shape hiện tại
+        mapping[shapeBox.id] = name;
+        drawLines();
+        });
+    });
+  
+    // Vẽ các dây nối bằng SVG
+    function drawLines() {
+      svg.innerHTML = "";
+  
+      Object.entries(mapping).forEach(([shapeId, labelName]) => {
+        const shapeBox = document.getElementById(shapeId);
+        const labelBox = [...document.querySelectorAll(".label-box")]
+          .find(el => el.dataset.name === labelName);
+  
+        if (!shapeBox || !labelBox) return;
+  
+        const sRect = shapeBox.getBoundingClientRect();
+        const lRect = labelBox.getBoundingClientRect();
+        const svgRect = svg.getBoundingClientRect();
+  
+        const x1 = sRect.x + sRect.width;
+        const y1 = sRect.y + sRect.height / 2;
+        const x2 = lRect.x;
+        const y2 = lRect.y + lRect.height / 2;
+  
+        const correct = shapeBox.firstChild.dataset.name === labelBox.dataset.name;
+  
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x1 - svgRect.x);
+        line.setAttribute("y1", y1 - svgRect.y);
+        line.setAttribute("x2", x2 - svgRect.x);
+        line.setAttribute("y2", y2 - svgRect.y);
+        line.setAttribute("stroke", correct ? "#28a745" : "#dc3545");
+        line.setAttribute("stroke-width", "4");
+        svg.appendChild(line);
+      });
+    }
+  
+    // Cập nhật dây khi resize hoặc scroll
+    window.addEventListener("resize", drawLines);
+    window.addEventListener("scroll", drawLines);
+  
+    // Nút kiểm tra
+    document.getElementById("checkBtn").onclick = () => {
+      let allCorrect = true;
+  
+      Object.entries(mapping).forEach(([shapeId, labelName]) => {
+        const shapeBox = document.getElementById(shapeId);
+        const actual = shapeBox.firstChild.dataset.name;
+        if (actual !== labelName) allCorrect = false;
+      });
+  
+      const popup = document.getElementById("popup");
+      const popupContent = popup.querySelector(".popup-content");
+      const text = document.getElementById("popup-text");
+
+        // Xoá class cũ nếu có
+    popupContent.classList.remove("success", "error");
+
+    // Gán class theo kết quả
+    popupContent.classList.add(allCorrect ? "success" : "error");
+
+    // Hiển thị thông báo
+    popup.style.display = "flex";
+    text.textContent = allCorrect
+        ? "✨ Chúc mừng! Bạn đã nối đúng tất cả."
+        : "⚠️ Còn một vài đáp án sai. Hãy thử lại.";
+    };
+  
+    function closePopup() {
+      document.getElementById("popup").style.display = "none";
+    }
+  </script>
+  
+</body>
+
+</html>
