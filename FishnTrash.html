@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Phân biệt Cá và Rác</title>
+  <meta charset="UTF-8" />
+  <title>AI Phân Biệt Cá và Rác</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -10,25 +10,74 @@
       margin: 0;
       padding: 20px;
     }
+
     h2, h3 {
       color: #005b99;
+      margin-bottom: 10px;
     }
+
     .section {
-      background: #fff;
+      background: #ffffff;
       border-radius: 10px;
       padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
+
+    /* Bước 1: bố cục 2 khối cá và rác */
+    .upload-grid {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
+
+    .upload-box {
+      flex: 1;
+      min-width: 200px;
+      background: #f9fbff;
+      border: 2px dashed #aac;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .upload-box strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
     input[type="file"] {
-      margin: 10px 0;
+      display: none;
     }
+
+    .custom-upload {
+      display: inline-block;
+      background-color: #00a8ff;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .custom-upload:hover {
+      background-color: #0077cc;
+    }
+
     .img-list {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-top: 10px;
     }
+
+    .img-group {
+      margin-bottom: 15px;
+    }
+
     .img-list img {
       width: 80px;
       height: 80px;
@@ -36,24 +85,13 @@
       border-radius: 8px;
       border: 2px solid #ccc;
     }
+
     #result {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
-      margin-top: 15px;
+      margin-top: 20px;
       color: #007700;
-    }
-    button {
-      background: #007bff;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover {
-      background: #0056b3;
+      text-align: center;
     }
   </style>
 </head>
@@ -61,35 +99,56 @@
 
   <h2>🤖 AI học cách phân biệt Cá và Rác</h2>
 
+  <!-- BƯỚC 1 -->
   <div class="section">
-    <h3>📥 Bước 1: Dạy AI hình Cá 🐟</h3>
-    <input type="file" accept="image/*" multiple onchange="handleTrain(event, 'fish')">
+    <h3>📥 Bước 1: Dạy AI nhận biết Cá 🐟 và Rác 🗑️</h3>
+    <div class="upload-grid">
+      <div class="upload-box">
+        <strong>🐟 Hình ảnh Cá</strong>
+        <label class="custom-upload" for="fishUpload">Chọn ảnh Cá</label>
+        <input type="file" id="fishUpload" accept="image/*" multiple onchange="handleTrain(event, 'fish')">
+      </div>
+      <div class="upload-box">
+        <strong>🗑️ Hình ảnh Rác</strong>
+        <label class="custom-upload" for="trashUpload">Chọn ảnh Rác</label>
+        <input type="file" id="trashUpload" accept="image/*" multiple onchange="handleTrain(event, 'trash')">
+      </div>
+    </div>
   </div>
 
+  <!-- BƯỚC 2 -->
   <div class="section">
-    <h3>📥 Bước 2: Dạy AI hình Rác 🗑️</h3>
-    <input type="file" accept="image/*" multiple onchange="handleTrain(event, 'trash')">
+    <h3>🧠 Bước 2: Hình ảnh AI đã học</h3>
+    <div class="img-group">
+      <strong>🐟 Cá:</strong>
+      <div class="img-list" id="fishImages"></div>
+    </div>
+    <div class="img-group">
+      <strong>🗑️ Rác:</strong>
+      <div class="img-list" id="trashImages"></div>
+    </div>
   </div>
 
+  <!-- BƯỚC 3 -->
   <div class="section">
-    <h3>🧠 Hình ảnh AI đã học</h3>
-    <div class="img-list" id="trainImages"></div>
-  </div>
-
-  <div class="section">
-    <h3>🧪 Bước 3: Hãy thử tải 1 hình bất kỳ để xem AI đoán là Cá hay Rác</h3>
-    <input type="file" accept="image/*" onchange="handlePredict(event)">
+    <h3>🧪 Bước 3: Hãy tải 1 hình để AI đoán</h3>
+    <div style="text-align: center;">
+      <label class="custom-upload" for="predictUpload">📸 Tải ảnh để AI đoán</label>
+      <input type="file" id="predictUpload" accept="image/*" onchange="handlePredict(event)">
+    </div>
     <div id="result"></div>
   </div>
 
+  <!-- Canvas ẩn -->
   <canvas id="hiddenCanvas" width="20" height="20" style="display:none;"></canvas>
 
+  <!-- SCRIPT -->
   <script>
     const trainingData = { fish: [], trash: [] };
 
     function handleTrain(event, label) {
       const files = event.target.files;
-      const preview = document.getElementById("trainImages");
+      const targetDiv = document.getElementById(label === 'fish' ? 'fishImages' : 'trashImages');
 
       for (let file of files) {
         const reader = new FileReader();
@@ -98,11 +157,8 @@
           img.onload = () => {
             const vec = imageToVector(img);
             trainingData[label].push(vec);
-
-            // Show image
             img.title = label === 'fish' ? '🐟 Cá' : '🗑️ Rác';
-            img.alt = img.title;
-            preview.appendChild(img);
+            targetDiv.appendChild(img);
           };
           img.src = e.target.result;
         };
@@ -151,7 +207,6 @@
     function predict(vec) {
       let bestLabel = null;
       let bestDist = Infinity;
-
       for (let label in trainingData) {
         for (let sample of trainingData[label]) {
           const dist = euclideanDist(vec, sample);
