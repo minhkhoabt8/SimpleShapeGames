@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Phân biệt Cá và Rác</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f8ff;
+      margin: 0;
+      padding: 20px;
+    }
+    h2, h3 {
+      color: #005b99;
+    }
+    .section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    input[type="file"] {
+      margin: 10px 0;
+    }
+    .img-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .img-list img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #ccc;
+    }
+    #result {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 15px;
+      color: #007700;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🤖 AI học cách phân biệt Cá và Rác</h2>
+
+  <div class="section">
+    <h3>📥 Bước 1: Dạy AI hình Cá 🐟</h3>
+    <input type="file" accept="image/*" multiple onchange="handleTrain(event, 'fish')">
+  </div>
+
+  <div class="section">
+    <h3>📥 Bước 2: Dạy AI hình Rác 🗑️</h3>
+    <input type="file" accept="image/*" multiple onchange="handleTrain(event, 'trash')">
+  </div>
+
+  <div class="section">
+    <h3>🧠 Hình ảnh AI đã học</h3>
+    <div class="img-list" id="trainImages"></div>
+  </div>
+
+  <div class="section">
+    <h3>🧪 Bước 3: Hãy thử tải 1 hình bất kỳ để xem AI đoán là Cá hay Rác</h3>
+    <input type="file" accept="image/*" onchange="handlePredict(event)">
+    <div id="result"></div>
+  </div>
+
+  <canvas id="hiddenCanvas" width="20" height="20" style="display:none;"></canvas>
+
+  <script>
+    const trainingData = { fish: [], trash: [] };
+
+    function handleTrain(event, label) {
+      const files = event.target.files;
+      const preview = document.getElementById("trainImages");
+
+      for (let file of files) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = new Image();
+          img.onload = () => {
+            const vec = imageToVector(img);
+            trainingData[label].push(vec);
+
+            // Show image
+            img.title = label === 'fish' ? '🐟 Cá' : '🗑️ Rác';
+            img.alt = img.title;
+            preview.appendChild(img);
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function handlePredict(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = () => {
+          const vec = imageToVector(img);
+          const result = predict(vec);
+          document.getElementById("result").textContent =
+            `🤖 AI đoán: ${result === 'fish' ? '🐟 Cá' : '🗑️ Rác'}`;
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function imageToVector(img) {
+      const canvas = document.getElementById("hiddenCanvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      const vector = [];
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = (data[i] + data[i+1] + data[i+2]) / 3;
+        vector.push(gray);
+      }
+      return vector;
+    }
+
+    function euclideanDist(v1, v2) {
+      let sum = 0;
+      for (let i = 0; i < v1.length; i++) {
+        sum += (v1[i] - v2[i]) ** 2;
+      }
+      return Math.sqrt(sum);
+    }
+
+    function predict(vec) {
+      let bestLabel = null;
+      let bestDist = Infinity;
+
+      for (let label in trainingData) {
+        for (let sample of trainingData[label]) {
+          const dist = euclideanDist(vec, sample);
+          if (dist < bestDist) {
+            bestDist = dist;
+            bestLabel = label;
+          }
+        }
+      }
+      return bestLabel;
+    }
+  </script>
+
+</body>
+</html>
