@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat với AI bạn nhỏ 🤖</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f8ff;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #005b99;
+    }
+    #chatBox {
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 10px;
+      background: #f9f9f9;
+      margin-bottom: 10px;
+    }
+    .msg {
+      margin-bottom: 10px;
+    }
+    .user {
+      color: #333;
+    }
+    .bot {
+      color: #0077cc;
+      font-weight: bold;
+    }
+    #userInput {
+      width: 80%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    #sendBtn {
+      padding: 10px 20px;
+      border: none;
+      background-color: #00a8ff;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    #sendBtn:hover {
+      background-color: #0077cc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>💬 Chat với AI Bạn nhỏ 🤖</h2>
+    <div id="chatBox"></div>
+    <div style="margin-top: 10px;">
+      <input type="text" id="userInput" placeholder="Bạn muốn hỏi gì nè?..." />
+      <button id="sendBtn">Gửi</button>
+    </div>
+  </div>
+
+  <script>
+    let userName = null;
+    let userAge = null;
+    let userHobby = null;
+
+    const botResponses = [
+      { keywords: ["xin chào", "hello", "hi", "chào"], reply: ["Chào bạn! Bạn tên là gì?"] },
+      { keywords: ["tên", "mình tên", "tôi tên", "mình tên là", "tôi tên là"], reply: [] },
+      { keywords: ["tuổi"], reply: ["Bạn bao nhiêu tuổi nhỉ?" ] },
+      { keywords: ["mình", "tôi", "tuổi", "năm nay"], reply: [] },
+      { keywords: ["sở thích", "thích làm gì", "thích chơi gì"], reply: ["Bạn thích chơi gì nhất vậy?" ] },
+      { keywords: ["chơi", "game", "đá bóng", "vẽ", "bơi"], reply: [] },
+      { keywords: ["ăn", "món", "thích món gì"], reply: ["Mình thích ăn mì gói, cơm, phở bò, bánh canh"] },
+      { keywords: ["trời", "thời tiết", "mưa", "nắng"], reply: ["Hôm nay trời mát mẻ dễ chịu ghê, rất thích hợp để đọc sách đó"] },
+      { keywords: ["buồn", "khóc"], reply: ["Bạn đừng buồn nữa, hãy vui lên đi nào", "Tôi chia buồn với bạn nhé, đừng buồn nữa nha"] },
+    ];
+
+    const jokes = [
+      "😅",
+      "🤖",
+      "💓",
+      "😊"
+    ];
+
+    const chatBox = document.getElementById("chatBox");
+    const userInput = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+
+    function addMessage(sender, text) {
+      const msg = document.createElement("div");
+      msg.classList.add("msg");
+      msg.classList.add(sender);
+      msg.innerHTML = `<strong>${sender === 'user' ? '👦 Bạn:' : '🤖 AI:'}</strong> ${text}`;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function detectInfo(message) {
+      let nameMatch = message.match(/t(?:ên|ôi tên|ên mình) là (.+)/i);
+      if (nameMatch) userName = nameMatch[1].trim().split(" ")[0];
+
+      let ageMatch = message.match(/(?:năm nay\\s*)?(\\d{1,2})\\s*(tuổi|năm)?/i);
+      if (ageMatch) userAge = ageMatch[1];
+
+      let hobbyMatch = message.match(/th[ií]ch (.+)/i);
+      if (hobbyMatch) userHobby = hobbyMatch[1].split(" ")[0];
+    }
+
+    function getBotReply(message) {
+      detectInfo(message);
+
+      if (userName && !userAge) return `Rất vui gặp bạn ${userName}! Bạn bao nhiêu tuổi?`;
+      if (userName && userAge && !userHobby) return `${userName} ${userAge} tuổi à? Bạn thích làm gì nè?`;
+      if (userName && userAge && userHobby) return `Wow ${userName} ${userAge} tuổi và thích ${userHobby}! Chúng mình hợp nhau ghê! ${jokes[Math.floor(Math.random() * jokes.length)]}`;
+
+      const lower = message.toLowerCase();
+      for (let item of botResponses) {
+        if (item.keywords.some(k => lower.includes(k))) {
+          if (item.reply.length > 0) {
+            let res = item.reply[Math.floor(Math.random() * item.reply.length)];
+            if (userName) res = res.replace("Mình", `${userName} ơi, mình`);
+            if (Math.random() < 0.3) res += " " + jokes[Math.floor(Math.random() * jokes.length)];
+            return res;
+          }
+        }
+      }
+      return "Bạn nói gì vậy? Mình đang học thêm để hiểu đó nha! 🤔";
+    }
+
+    sendBtn.addEventListener("click", () => {
+      const text = userInput.value.trim();
+      if (!text) return;
+      addMessage("user", text);
+      const reply = getBotReply(text);
+      setTimeout(() => addMessage("bot", reply), 600);
+      userInput.value = "";
+    });
+
+    userInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendBtn.click();
+    });
+  </script>
+</body>
+</html>
