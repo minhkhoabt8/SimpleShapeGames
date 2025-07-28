@@ -24,7 +24,6 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    /* Bước 1: bố cục 2 khối cá và rác */
     .upload-grid {
       display: flex;
       gap: 20px;
@@ -86,6 +85,14 @@
       border: 2px solid #ccc;
     }
 
+    #previewArea img {
+      max-width: 120px;
+      max-height: 120px;
+      border: 2px solid #aaa;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
     #result {
       font-size: 22px;
       font-weight: bold;
@@ -131,11 +138,13 @@
 
   <!-- BƯỚC 3 -->
   <div class="section">
-    <h3>🧪 Bước 3: Hãy tải 1 hình để AI đoán</h3>
+    <h3>🧪 Bước 3: Tải 1 hình để AI đoán</h3>
     <div style="text-align: center;">
       <label class="custom-upload" for="predictUpload">📸 Tải ảnh để AI đoán</label>
       <input type="file" id="predictUpload" accept="image/*" onchange="handlePredict(event)">
     </div>
+
+    <div id="previewArea" style="text-align: center; margin-top: 15px;"></div>
     <div id="result"></div>
   </div>
 
@@ -174,8 +183,13 @@
         img.onload = () => {
           const vec = imageToVector(img);
           const result = predict(vec);
+
           document.getElementById("result").textContent =
             `🤖 AI đoán: ${result === 'fish' ? '🐟 Cá' : '🗑️ Rác'}`;
+
+          const preview = document.getElementById("previewArea");
+          preview.innerHTML = '';
+          preview.appendChild(img);
         };
         img.src = e.target.result;
       };
