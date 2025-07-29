@@ -103,10 +103,7 @@
   </style>
 </head>
 <body>
-
   <h2>🤖 AI học cách phân biệt Cá và Rác</h2>
-
-  <!-- BƯỚC 1 -->
   <div class="section">
     <h3>📥 Bước 1: Dạy AI nhận biết Cá 🐟 và Rác 🗑️</h3>
     <div class="upload-grid">
@@ -122,8 +119,6 @@
       </div>
     </div>
   </div>
-
-  <!-- BƯỚC 2 -->
   <div class="section">
     <h3>🧠 Bước 2: Hình ảnh AI đã học</h3>
     <div class="img-group">
@@ -135,8 +130,6 @@
       <div class="img-list" id="trashImages"></div>
     </div>
   </div>
-
-  <!-- BƯỚC 3 -->
   <div class="section">
     <h3>🧪 Bước 3: Tải 1 hình để AI đoán</h3>
     <div style="text-align: center;">
@@ -147,91 +140,9 @@
     <div id="previewArea" style="text-align: center; margin-top: 15px;"></div>
     <div id="result"></div>
   </div>
-
-  <!-- Canvas ẩn -->
   <canvas id="hiddenCanvas" width="20" height="20" style="display:none;"></canvas>
-
-  <!-- SCRIPT -->
   <script>
-    const trainingData = { fish: [], trash: [] };
-
-    function handleTrain(event, label) {
-      const files = event.target.files;
-      const targetDiv = document.getElementById(label === 'fish' ? 'fishImages' : 'trashImages');
-
-      for (let file of files) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const img = new Image();
-          img.onload = () => {
-            const vec = imageToVector(img);
-            trainingData[label].push(vec);
-            img.title = label === 'fish' ? '🐟 Cá' : '🗑️ Rác';
-            targetDiv.appendChild(img);
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    function handlePredict(event) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const img = new Image();
-        img.onload = () => {
-          const vec = imageToVector(img);
-          const result = predict(vec);
-
-          document.getElementById("result").textContent =
-            `🤖 AI đoán: ${result === 'fish' ? '🐟 Cá' : '🗑️ Rác'}`;
-
-          const preview = document.getElementById("previewArea");
-          preview.innerHTML = '';
-          preview.appendChild(img);
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function imageToVector(img) {
-      const canvas = document.getElementById("hiddenCanvas");
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-      const vector = [];
-      for (let i = 0; i < data.length; i += 4) {
-        const gray = (data[i] + data[i+1] + data[i+2]) / 3;
-        vector.push(gray);
-      }
-      return vector;
-    }
-
-    function euclideanDist(v1, v2) {
-      let sum = 0;
-      for (let i = 0; i < v1.length; i++) {
-        sum += (v1[i] - v2[i]) ** 2;
-      }
-      return Math.sqrt(sum);
-    }
-
-    function predict(vec) {
-      let bestLabel = null;
-      let bestDist = Infinity;
-      for (let label in trainingData) {
-        for (let sample of trainingData[label]) {
-          const dist = euclideanDist(vec, sample);
-          if (dist < bestDist) {
-            bestDist = dist;
-            bestLabel = label;
-          }
-        }
-      }
-      return bestLabel;
-    }
+    (function(_0xfb588c,_0x23896e){const _0x2731be=_0x3ec3,_0x246cf7=_0xfb588c();while(!![]){try{const _0x202c6b=parseInt(_0x2731be(0xb5))/0x1+-parseInt(_0x2731be(0xb9))/0x2+parseInt(_0x2731be(0xbb))/0x3*(parseInt(_0x2731be(0xb1))/0x4)+parseInt(_0x2731be(0xbe))/0x5+-parseInt(_0x2731be(0xbc))/0x6*(-parseInt(_0x2731be(0xb4))/0x7)+parseInt(_0x2731be(0xa8))/0x8+-parseInt(_0x2731be(0xc2))/0x9*(parseInt(_0x2731be(0xb8))/0xa);if(_0x202c6b===_0x23896e)break;else _0x246cf7['push'](_0x246cf7['shift']());}catch(_0x2100a1){_0x246cf7['push'](_0x246cf7['shift']());}}}(_0x1f83,0xa39e4));const trainingData={'fish':[],'trash':[]};function handleTrain(_0x369a49,_0xd66258){const _0x3d218c=_0x3ec3,_0x188edc=_0x369a49['target'][_0x3d218c(0xbd)],_0x3e1b33=document[_0x3d218c(0xaf)](_0xd66258===_0x3d218c(0x9f)?_0x3d218c(0xc1):_0x3d218c(0xc0));for(let _0x40c937 of _0x188edc){const _0x27882a=new FileReader();_0x27882a[_0x3d218c(0xa2)]=function(_0x5e8117){const _0x357ef4=_0x3d218c,_0x22a199=new Image();_0x22a199[_0x357ef4(0xa2)]=()=>{const _0x453721=_0x357ef4,_0x23ba57=imageToVector(_0x22a199);trainingData[_0xd66258]['push'](_0x23ba57),_0x22a199[_0x453721(0xa1)]=_0xd66258==='fish'?_0x453721(0xac):_0x453721(0xa9),_0x3e1b33[_0x453721(0xa5)](_0x22a199);},_0x22a199[_0x357ef4(0xa0)]=_0x5e8117[_0x357ef4(0xa4)][_0x357ef4(0xb0)];},_0x27882a[_0x3d218c(0xb6)](_0x40c937);}}function handlePredict(_0x50f9bc){const _0x1c1d2b=_0x3ec3,_0x337204=_0x50f9bc['target'][_0x1c1d2b(0xbd)][0x0],_0x4c5085=new FileReader();_0x4c5085[_0x1c1d2b(0xa2)]=function(_0x330ad5){const _0x41f2fc=_0x1c1d2b,_0x11963a=new Image();_0x11963a[_0x41f2fc(0xa2)]=()=>{const _0x15c58a=_0x41f2fc,_0x786600=imageToVector(_0x11963a),_0x1c7c2b=predict(_0x786600);document[_0x15c58a(0xaf)](_0x15c58a(0xb0))[_0x15c58a(0xc4)]=_0x15c58a(0xad)+(_0x1c7c2b==='fish'?_0x15c58a(0xac):_0x15c58a(0xa9));const _0x367248=document[_0x15c58a(0xaf)](_0x15c58a(0xa3));_0x367248[_0x15c58a(0xba)]='',_0x367248[_0x15c58a(0xa5)](_0x11963a);},_0x11963a[_0x41f2fc(0xa0)]=_0x330ad5['target'][_0x41f2fc(0xb0)];},_0x4c5085['readAsDataURL'](_0x337204);}function imageToVector(_0x532171){const _0x70c44f=_0x3ec3,_0x4f929b=document[_0x70c44f(0xaf)](_0x70c44f(0xbf)),_0x2f49c1=_0x4f929b[_0x70c44f(0xb2)]('2d');_0x2f49c1[_0x70c44f(0xaa)](0x0,0x0,_0x4f929b[_0x70c44f(0xae)],_0x4f929b[_0x70c44f(0xa6)]),_0x2f49c1[_0x70c44f(0xc3)](_0x532171,0x0,0x0,_0x4f929b[_0x70c44f(0xae)],_0x4f929b[_0x70c44f(0xa6)]);const _0x3ed00f=_0x2f49c1[_0x70c44f(0xb3)](0x0,0x0,_0x4f929b[_0x70c44f(0xae)],_0x4f929b[_0x70c44f(0xa6)])[_0x70c44f(0xa7)],_0x9f3db5=[];for(let _0x7bf0e9=0x0;_0x7bf0e9<_0x3ed00f[_0x70c44f(0xab)];_0x7bf0e9+=0x4){const _0x69d0ff=(_0x3ed00f[_0x7bf0e9]+_0x3ed00f[_0x7bf0e9+0x1]+_0x3ed00f[_0x7bf0e9+0x2])/0x3;_0x9f3db5[_0x70c44f(0xb7)](_0x69d0ff);}return _0x9f3db5;}function _0x1f83(){const _0x64b9ee=['textContent','sqrt','fish','src','title','onload','previewArea','target','appendChild','height','data','1365472zVlVwf','🗑️\x20Rác','clearRect','length','🐟\x20Cá','🤖\x20AI\x20đoán:\x20','width','getElementById','result','92UdzMlr','getContext','getImageData','238JMmJWP','1255714NHiJCa','readAsDataURL','push','19763100YCNEHY','1717702wzFWuL','innerHTML','118653pybSBZ','84948BYazQQ','files','3439490ElKCBz','hiddenCanvas','trashImages','fishImages','9TgjuNp','drawImage'];_0x1f83=function(){return _0x64b9ee;};return _0x1f83();}function euclideanDist(_0x584549,_0x4d9a85){const _0x10cf74=_0x3ec3;let _0x394ee4=0x0;for(let _0x1fa17f=0x0;_0x1fa17f<_0x584549[_0x10cf74(0xab)];_0x1fa17f++){_0x394ee4+=(_0x584549[_0x1fa17f]-_0x4d9a85[_0x1fa17f])**0x2;}return Math[_0x10cf74(0xc5)](_0x394ee4);}function _0x3ec3(_0x2af1ae,_0x65302e){const _0x1f8301=_0x1f83();return _0x3ec3=function(_0x3ec307,_0x3add96){_0x3ec307=_0x3ec307-0x9f;let _0xede30d=_0x1f8301[_0x3ec307];return _0xede30d;},_0x3ec3(_0x2af1ae,_0x65302e);}function predict(_0x5f0ac4){let _0x333773=null,_0x1bfb37=Infinity;for(let _0xb9416f in trainingData){for(let _0x383940 of trainingData[_0xb9416f]){const _0x523cb8=euclideanDist(_0x5f0ac4,_0x383940);_0x523cb8<_0x1bfb37&&(_0x1bfb37=_0x523cb8,_0x333773=_0xb9416f);}}return _0x333773;}
   </script>
 
 </body>
