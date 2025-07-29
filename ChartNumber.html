@@ -100,6 +100,15 @@
         <option value="500" selected>Trung bình</option>
         <option value="700">Lớn</option>
       </select>
+      <select id="betAmount">
+        <option value="10000">10.000 VND</option>
+        <option value="20000">20.000 VND</option>
+        <option value="50000">50.000 VND</option>
+        <option value="100000" selected>100.000 VND</option>
+        <option value="300000">300.000 VND</option>
+        <option value="500000">500.000 VND</option>
+        <option value="1000000">1.000.000 VND</option>
+      </select>
       <button onclick="processInput()">OK</button>
       <button onclick="resetAll()" style="background-color: #b80000;">Reset</button>
       <h3>📌 Kết Quả:</h3>
@@ -284,31 +293,36 @@
     }
 
     function updateProfitEstimation() {
-        let container = document.getElementById('profitEstimation');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'profitEstimation';
-            container.style.marginTop = '20px';
-            container.style.padding = '10px';
-            container.style.background = '#fff3e0';
-            container.style.border = '1px solid #ffcc80';
-            container.style.borderRadius = '8px';
-            container.innerHTML = `<h4>💸 Ước tính lãi/lỗ</h4><div id="profitContent"></div>`;
-            const strategyBox = document.getElementById('strategyAdvice');
-            strategyBox.insertAdjacentElement('afterend', container);
-        }
-        if (chartData.length === 0) {
-            document.getElementById('profitContent').innerHTML = '';
-            return;
-        }
-        let totalBet = chartData.length;
-        let totalWin = chartData.reduce((sum, n) => sum + (payoutMap[n] || 0), 0);
-        let profit = totalWin - totalBet;
-        document.getElementById('profitContent').innerHTML = `
-            🧾 Tổng số lượt cược: ${totalBet}<br>
-            💰 Tổng tiền thắng (giả định 1 đơn vị/lượt): ${totalWin.toFixed(2)}<br>
-            📉 <strong>${profit >= 0 ? 'Lợi nhuận' : 'Thua lỗ'}:</strong> ${profit.toFixed(2)} đơn vị
-        `;
+      let container = document.getElementById('profitEstimation');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'profitEstimation';
+        container.style.marginTop = '20px';
+        container.style.padding = '10px';
+        container.style.background = '#fff3e0';
+        container.style.border = '1px solid #ffcc80';
+        container.style.borderRadius = '8px';
+        container.innerHTML = `<h4>💸 Ước tính lãi/lỗ</h4><div id="profitContent"></div>`;
+        const strategyBox = document.getElementById('strategyAdvice');
+        strategyBox.insertAdjacentElement('afterend', container);
+      }
+
+      if (chartData.length === 0) {
+        document.getElementById('profitContent').innerHTML = '';
+        return;
+      }
+
+      const bet = parseInt(document.getElementById('betAmount').value || '100000');
+      let totalBet = chartData.length * bet;
+      let totalWin = chartData.reduce((sum, n) => sum + (payoutMap[n] || 0) * bet, 0);
+      let profit = totalWin - totalBet;
+
+      document.getElementById('profitContent').innerHTML = `
+        🧾 Tổng số lượt cược: ${chartData.length}<br>
+        💵 Tiền đặt mỗi lượt: ${bet.toLocaleString()} VND<br>
+        💰 Tổng tiền thắng (ước tính): ${totalWin.toLocaleString()} VND<br>
+        📉 <strong>${profit >= 0 ? 'Lợi nhuận' : 'Thua lỗ'}:</strong> ${profit.toLocaleString()} VND
+      `;
     }
 
     function updateChart() {
@@ -388,6 +402,7 @@
     function updateExtraStats() {
     const containerId = 'extraStats';
     let container = document.getElementById(containerId);
+
     if (!container) {
         container = document.createElement('div');
         container.id = containerId;
@@ -407,18 +422,70 @@
 
     const average = (chartData.reduce((sum, n) => sum + n, 0) / chartData.length).toFixed(2);
     const last5 = chartData.slice(-5);
-    const trend = last5.every(n => n > 11) ? 'Tăng mạnh (toàn số lớn)' : last5.every(n => n < 10) ? 'Giảm mạnh (toàn số nhỏ)' : 'Không ổn định';
+
+    const trend5 = last5.every(n => n > 11)
+        ? 'Tăng mạnh (toàn số lớn)'
+        : last5.every(n => n < 10)
+            ? 'Giảm mạnh (toàn số nhỏ)'
+            : 'Không ổn định';
 
     const histogram = {};
     for (let i = 3; i <= 18; i++) histogram[i] = 0;
     chartData.forEach(n => histogram[n]++);
 
-    const mostStable = Object.entries(histogram).filter(([_, v]) => v >= 2).map(([k]) => k).join(', ') || 'Không có';
+    const mostStable = Object.entries(histogram)
+        .filter(([_, v]) => v >= 2)
+        .map(([k]) => k)
+        .join(', ') || 'Không có';
+
+    // Phân loại nhóm
+    let small = 0, draw = 0, big = 0;
+    chartData.forEach(n => {
+        if (n <= 9) small++;
+        else if (n <= 11) draw++;
+        else big++;
+    });
+
+    const total = chartData.length;
+    const percent = (n) => ((n / total) * 100).toFixed(1) + '%';
+
+    let globalTrend = '';
+    if (small > draw && small > big) globalTrend = 'Thiên về nhóm Nhỏ (3–9)';
+    else if (big > draw && big > small) globalTrend = 'Thiên về nhóm Lớn (12–18)';
+    else if (draw > small && draw > big) globalTrend = 'Thiên về nhóm Hòa (10–11)';
+    else globalTrend = 'Phân bố khá cân bằng giữa các nhóm';
+
+    // Top 3 số ra nhiều nhất
+    const top3 = Object.entries(histogram)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([k, v]) => `${k} (${v} lần)`)
+        .join(', ');
+
+    // Tìm chuỗi lặp liên tiếp
+    let streaks = [];
+    for (let i = 1; i < chartData.length; i++) {
+        if (chartData[i] === chartData[i - 1]) {
+            let count = 2;
+            let j = i + 1;
+            while (chartData[j] === chartData[i]) {
+                count++;
+                j++;
+            }
+            streaks.push(`${chartData[i]} (${count} lần liên tiếp)`);
+            i = j - 1;
+        }
+    }
+    const streakInfo = streaks.length > 0 ? streaks.join(', ') : 'Không có';
 
     container.innerHTML = `
         📊 <strong>Trung bình cộng:</strong> ${average}<br>
-        📈 <strong>Xu hướng 5 số gần nhất:</strong> ${last5.join(', ')} → <em>${trend}</em><br>
+        📈 <strong>Xu hướng 5 số gần nhất:</strong> ${last5.join(', ')} → <em>${trend5}</em><br>
+        📈 <strong>Phân bố số:</strong> ${globalTrend}<br>
         📌 <strong>Các số ra ổn định (≥ 2 lần):</strong> ${mostStable}<br>
+        🔢 <strong>Top 3 số ra nhiều nhất:</strong> ${top3}<br>
+        📊 <strong>Tỷ lệ nhóm:</strong> Nhỏ ${percent(small)} – Hòa ${percent(draw)} – Lớn ${percent(big)}<br>
+        🔁 <strong>Chuỗi số lặp liên tiếp:</strong> ${streakInfo}
     `;
 }
 
@@ -468,7 +535,7 @@
   });
 }
     
-    function updateStrategy() {
+  function updateStrategy() {
   const containerId = 'strategyAdvice';
   let container = document.getElementById(containerId);
   if (!container) {
@@ -489,6 +556,8 @@
       document.getElementById('right').appendChild(container);
     }
   }
+
+  // Thống kê tần suất
   const count = {};
   for (let i = 3; i <= 18; i++) count[i] = 0;
   chartData.forEach(n => count[n]++);
@@ -496,17 +565,36 @@
   const rareCandidates = sorted.slice(0, 3).map(([n]) => parseInt(n));
   const bestReturns = rareCandidates.sort((a, b) => payoutMap[b] - payoutMap[a]);
 
-  let betGroup = '';
+  // Dựa vào nhóm số gần nhất
+  const last10 = chartData.slice(-10);
+  let small = 0, draw = 0, large = 0;
+  last10.forEach(n => {
+    if (n <= 9) small++;
+    else if (n <= 11) draw++;
+    else large++;
+  });
+
+  // Nhóm xuất hiện ít nhất trong 10 lượt gần nhất
+  const groupGaps = {
+    'Nhỏ': small,
+    'Hòa': draw,
+    'Lớn': large
+  };
+  const recommendGroup = Object.entries(groupGaps).sort((a, b) => a[1] - b[1])[0][0];
+
+  // Số cuối cùng để làm chiến thuật chu kỳ
   const last = chartData[chartData.length - 1];
-  if (last <= 9) betGroup = 'Lớn (x1.5)';
-  else if (last <= 11) betGroup = 'Nhỏ (x1.5)';
-  else betGroup = 'Hòa (x2)';
+  let counterGroup = '';
+  if (last <= 9) counterGroup = 'Lớn (12–18)';
+  else if (last <= 11) counterGroup = 'Nhỏ (3–9)';
+  else counterGroup = 'Hòa (10–11)';
 
   document.getElementById('strategyText').innerHTML = `
     🎯 <strong>Số hiếm gần đây:</strong> ${rareCandidates.join(', ')}<br>
     🧮 <strong>Ưu tiên chọn số:</strong> ${bestReturns.join(', ')} (tỉ lệ thắng cao + ít xuất hiện)<br>
-    📉 <strong>Chiến thuật theo chu kỳ:</strong> Sau khi ra ${last} → thử cược nhóm <strong>${betGroup}</strong><br>
-    ⚖️ <strong>Ưu tiên cược số có payout cao và tần suất thấp.</strong>
+    📉 <strong>Nhóm số xuất hiện ít trong 10 lượt gần nhất:</strong> <span style="color: darkorange">${recommendGroup}</span> – chỉ xuất hiện ${groupGaps[recommendGroup]} lần → có thể cân nhắc<br>
+    🔁 <strong>Chiến thuật đổi nhóm:</strong> Sau khi ra ${last}, thử chuyển sang nhóm đối lập: <strong>${counterGroup}</strong><br>
+    ⚖️ <strong>Gợi ý:</strong> Kết hợp chọn số hiếm và cược theo nhóm ít ra → tăng xác suất lợi nhuận.
   `;
 }
 
