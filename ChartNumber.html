@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Biểu đồ Bingo18</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px 40px;
+      background: #f2f4f8;
+      color: #333;
+      margin: 0;
+    }
+    h2, h3 {
+      color: #1f3b8b;
+    }
+    #layout {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    #left, #right {
+      flex: 1;
+      min-width: 400px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    select, button {
+      padding: 10px 15px;
+      margin-top: 10px;
+      margin-right: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #1f3b8b;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #324fa6;
+    }
+    #resultArea {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      min-height: 60px;
+    }
+    .number-box {
+      width: 50px;
+      height: 50px;
+      margin: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      font-size: 18px;
+    }
+    .small { background-color: #ffffff; color: #000; }
+    .draw { background-color: #ffeb3b; color: #000; }
+    .large { background-color: #000; color: #fff; }
+    #chartContainer {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 100%;
+      min-height: 300px;
+      transition: height 0.3s ease;
+    }
+    canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+    #predictionArea {
+      font-size: 18px;
+      line-height: 1.8;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎯 Nhập dãy số (3 – 18, cách nhau bởi dấu phẩy)</h2>
+  <div id="layout">
+    <div id="left">
+      <input type="text" id="numberInput" placeholder="Ví dụ: 3,5,10,12,18"><br>
+      <select id="chartSize" onchange="updateChartSize()">
+        <option value="300">Nhỏ</option>
+        <option value="500" selected>Trung bình</option>
+        <option value="700">Lớn</option>
+      </select>
+      <button onclick="processInput()">OK</button>
+      <button onclick="resetAll()" style="background-color: #b80000;">Reset</button>
+      <h3>📌 Kết Quả:</h3>
+      <div id="resultArea"></div>
+      <h3>🔮 Dự đoán tối ưu nhất:</h3>
+      <div id="predictionArea"></div>
+    </div>
+    <div id="right">
+      <h3>📈 Biểu đồ:</h3>
+      <div id="chartContainer">
+        <canvas id="lineChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <script>
+    let chartData = [];
+    let miniChart;
+    let historyLog = [];
+
+    const ctx = document.getElementById('lineChart').getContext('2d');
+    const chartContainer = document.getElementById('chartContainer');
+
+    const payoutMap = {
+        3: 120,
+        4: 40,
+        5: 20,
+        6: 12,
+        7: 8,
+        8: 5.5,
+        9: 4.7,
+        10: 4.4,
+        11: 4.4,
+        12: 4.7,
+        13: 5.5,
+        14: 8,
+        15: 12,
+        16: 20,
+        17: 40,
+        18: 120
+    }
+
+    const lineChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Số đã nhập',
+          data: [],
+          borderColor: '#1f3b8b',
+          backgroundColor: '#89a9ff88',
+          fill: true,
+          tension: 0,
+          pointRadius: 5,
+          pointBackgroundColor: '#1f3b8b'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            suggestedMin: 2,
+            suggestedMax: 20,
+            ticks: { stepSize: 1 }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: { font: { size: 14 } }
+          }
+        }
+      }
+    });
+
+    function processInput() {
+      const input = document.getElementById('numberInput').value;
+      const numbers = input.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n) && n >= 3 && n <= 18);
+      if (numbers.length === 0) return;
+      chartData = numbers;
+      logHistory(numbers);
+      updateResultArea();
+      updateChart();
+      updateMiniChart();
+      updatePrediction();
+      updateExtraStats();
+      updateStrategy();
+      updateProfitEstimation();
+      updateHistoryTable();
+      updateAIRecommendation();
+      updateCycleAnalysis();
+       // Wrap other analysis boxes (excluding cycle)
+      wrapInCollapsible('strategyAdvice', '💡 Chiến thuật đề xuất', '#f1f8e9');
+      wrapInCollapsible('profitEstimation', '💰 Ước tính lãi/lỗ', '#fff3e0');
+      wrapInCollapsible('aiRecommendation', '🤖 Gợi ý AI (Dựa trên biến động)', '#e3f2fd');
+      wrapInCollapsible('historyLog', '🕒 Lịch sử dự đoán', '#f9fbe7');
+      wrapInCollapsible('resultArea', '📋 Kết quả đã nhập', '#e8f5e9');
+      wrapInCollapsible('predictionStats', '📊 Thống kê nhóm số (Nhỏ / Hòa / Lớn)', '#ede7f6');
+      wrapInCollapsible('miniChartBox', '📉 Biểu đồ phụ', '#fce4ec');
+    }
+
+    function createCollapsible(title, id, color = '#fff') {
+      return `
+        <details open style="margin-top: 20px; padding: 10px; border-radius: 8px; background: ${color};">
+          <summary style="font-weight: bold; font-size: 16px; cursor: pointer;">${title}</summary>
+          <div id="${id}" style="margin-top: 10px;"></div>
+        </details>
+      `;
+    }
+
+  function wrapInCollapsible(id, title, color = '#f0f0f0') {
+    const oldBox = document.getElementById(id);
+    if (oldBox && !document.getElementById(id + 'Wrapper')) {
+      const parent = oldBox.parentElement;
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = createCollapsible(title, `${id}Content`, color);
+      wrapper.id = `${id}Wrapper`;
+      oldBox.id = `${id}Content`;
+      wrapper.querySelector(`#${id}Content`).replaceWith(oldBox);
+      parent.insertBefore(wrapper, oldBox);
+    }
+  }
+
+  function updateCycleAnalysis() {
+    let wrapperId = 'cycleAnalysisWrapper';
+    let wrapper = document.getElementById(wrapperId);
+    if (!wrapper) {
+      wrapper = document.createElement('div');
+      wrapper.id = wrapperId;
+      wrapper.innerHTML = createCollapsible('🔁 Phân tích chu kỳ & lặp', 'cycleContent', '#f3e5f5');
+      const aiBox = document.getElementById('aiRecommendationWrapper') || document.getElementById('aiRecommendation');
+      aiBox.insertAdjacentElement('afterend', wrapper);
+    }
+    if (chartData.length < 10) {
+      document.getElementById('cycleContent').innerHTML = 'Cần ít nhất 10 số để phân tích chu kỳ.';
+      return;
+    }
+    const last = chartData[chartData.length - 1];
+    const positions = [];
+    chartData.forEach((val, idx) => { if (val === last) positions.push(idx); });
+    const gaps = [];
+    for (let i = 1; i < positions.length; i++) gaps.push(positions[i] - positions[i - 1]);
+    const avgGap = gaps.length > 0 ? (gaps.reduce((a, b) => a + b) / gaps.length).toFixed(2) : 'Chưa đủ dữ liệu';
+    document.getElementById('cycleContent').innerHTML = `
+      🔄 Số gần nhất: <strong>${last}</strong><br>
+      🕓 Khoảng cách trung bình giữa các lần xuất hiện: <strong>${avgGap}</strong><br>
+      💡 Nếu trung bình là 4, thử cược lại số này sau mỗi 4 lượt.
+    `;
+    }
+
+    function logHistory(numbers) {
+        const timestamp = new Date().toLocaleString();
+        historyLog.push({ timestamp, numbers });
+    }
+
+    function updateHistoryTable() {
+        let container = document.getElementById('historyLog');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'historyLog';
+            container.style.marginTop = '20px';
+            container.style.padding = '10px';
+            container.style.borderTop = '2px dashed #aaa';
+            container.innerHTML = `<h4>🕒 Lịch sử dự đoán</h4><div id='logTable'></div>`;
+            document.getElementById('right').appendChild(container);
+        }
+        const logHtml = historyLog.slice(-5).map(entry => `<div><strong>${entry.timestamp}</strong>: ${entry.numbers.join(', ')}</div>`).join('');
+        document.getElementById('logTable').innerHTML = logHtml;
+    }
+
+    function updateResultArea() {
+      const resultArea = document.getElementById('resultArea');
+      resultArea.innerHTML = '';
+      chartData.forEach(n => {
+        const box = document.createElement('div');
+        box.classList.add('number-box');
+        if (n <= 9) box.classList.add('small');
+        else if (n <= 11) box.classList.add('draw');
+        else box.classList.add('large');
+        box.textContent = n;
+        resultArea.appendChild(box);
+      });
+    }
+
+    function updateProfitEstimation() {
+        let container = document.getElementById('profitEstimation');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'profitEstimation';
+            container.style.marginTop = '20px';
+            container.style.padding = '10px';
+            container.style.background = '#fff3e0';
+            container.style.border = '1px solid #ffcc80';
+            container.style.borderRadius = '8px';
+            container.innerHTML = `<h4>💸 Ước tính lãi/lỗ</h4><div id="profitContent"></div>`;
+            const strategyBox = document.getElementById('strategyAdvice');
+            strategyBox.insertAdjacentElement('afterend', container);
+        }
+        if (chartData.length === 0) {
+            document.getElementById('profitContent').innerHTML = '';
+            return;
+        }
+        let totalBet = chartData.length;
+        let totalWin = chartData.reduce((sum, n) => sum + (payoutMap[n] || 0), 0);
+        let profit = totalWin - totalBet;
+        document.getElementById('profitContent').innerHTML = `
+            🧾 Tổng số lượt cược: ${totalBet}<br>
+            💰 Tổng tiền thắng (giả định 1 đơn vị/lượt): ${totalWin.toFixed(2)}<br>
+            📉 <strong>${profit >= 0 ? 'Lợi nhuận' : 'Thua lỗ'}:</strong> ${profit.toFixed(2)} đơn vị
+        `;
+    }
+
+    function updateChart() {
+      lineChart.data.labels = chartData.map((_, i) => i + 1);
+      lineChart.data.datasets[0].data = chartData;
+      lineChart.update();
+    }
+
+    function updateChartSize() {
+      const height = document.getElementById('chartSize').value;
+      chartContainer.style.height = height + 'px';
+    }
+
+    function updatePrediction() {
+        const prediction = document.getElementById('predictionArea');
+        if (chartData.length === 0) {
+            prediction.innerHTML = 'Chưa có dữ liệu để phân tích.';
+            return;
+        }
+    const freq = {}, lastIndex = {};
+    chartData.forEach((num, i) => {
+        freq[num] = (freq[num] || 0) + 1;
+        lastIndex[num] = i;
+    });
+    const allNumbers = Array.from({ length: 16 }, (_, i) => i + 3);
+    let coldest = [], hottest = [], longestAbsent = [], minFreq = Infinity, maxFreq = -1, minRecent = -1;
+    allNumbers.forEach(num => {
+        const count = freq[num] || 0;
+        const last = lastIndex[num] ?? -1;
+        const distance = chartData.length - last;
+        if (count < minFreq) { coldest = [num]; minFreq = count; }
+        else if (count === minFreq) coldest.push(num);
+        if (count > maxFreq) { hottest = [num]; maxFreq = count; }
+        else if (count === maxFreq) hottest.push(num);
+        if (last === -1) longestAbsent.push(num);
+        else if (distance > minRecent) { longestAbsent = [num]; minRecent = distance; }
+        else if (distance === minRecent) longestAbsent.push(num);
+    });
+
+    let small = 0, draw = 0, big = 0;
+    let lastSmall = -1, lastDraw = -1, lastBig = -1;
+
+    chartData.forEach((n, i) => {
+        if (n <= 9) {
+        small++;
+        lastSmall = i;
+        } else if (n <= 11) {
+        draw++;
+        lastDraw = i;
+        } else {
+        big++;
+        lastBig = i;
+        }
+    });
+
+    const groupGaps = {
+        'Nhỏ (3–9)': chartData.length - lastSmall - 1,
+        'Hòa (10–11)': chartData.length - lastDraw - 1,
+        'Lớn (12–18)': chartData.length - lastBig - 1
+    };
+
+    const likelyNext = longestAbsent.length > 0 ? longestAbsent : coldest;
+
+    let groupPrediction = Object.entries(groupGaps).sort((a, b) => b[1] - a[1])[0][0];
+
+    prediction.innerHTML = `
+        🔢 <strong>Dự đoán số dễ ra tiếp theo:</strong>
+        <span style="color: crimson; font-size: 20px">${likelyNext.join(', ')}</span><br>
+        🔥 <strong>Số ra nhiều nhất (hot):</strong> ${hottest.join(', ')} (${maxFreq} lần)<br>
+        ❄️ <strong>Số ra ít nhất (cold):</strong> ${coldest.join(', ')} (${minFreq} lần)<br>
+        ⏳ <strong>Ra lâu rồi chưa xuất hiện:</strong> ${longestAbsent.join(', ')}<br>
+        ⚖️ <strong>Phân bố nhóm:</strong> Nhỏ: ${small} | Hòa: ${draw} | Lớn: ${big}<br>
+        ⌛ <strong>Nhóm lâu chưa xuất hiện nhất:</strong> <span style="color: darkorange">${groupPrediction}</span> (${groupGaps[groupPrediction]} lần chưa xuất hiện)<br>
+    `;
+    }
+
+    function updateExtraStats() {
+    const containerId = 'extraStats';
+    let container = document.getElementById(containerId);
+    if (!container) {
+        container = document.createElement('div');
+        container.id = containerId;
+        container.style.marginTop = '20px';
+        container.style.padding = '15px';
+        container.style.background = '#fff8e1';
+        container.style.border = '1px solid #f0c36d';
+        container.style.borderRadius = '8px';
+        container.style.lineHeight = '1.6';
+        document.getElementById('predictionArea').insertAdjacentElement('afterend', container);
+    }
+
+    if (chartData.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const average = (chartData.reduce((sum, n) => sum + n, 0) / chartData.length).toFixed(2);
+    const last5 = chartData.slice(-5);
+    const trend = last5.every(n => n > 11) ? 'Tăng mạnh (toàn số lớn)' : last5.every(n => n < 10) ? 'Giảm mạnh (toàn số nhỏ)' : 'Không ổn định';
+
+    const histogram = {};
+    for (let i = 3; i <= 18; i++) histogram[i] = 0;
+    chartData.forEach(n => histogram[n]++);
+
+    const mostStable = Object.entries(histogram).filter(([_, v]) => v >= 2).map(([k]) => k).join(', ') || 'Không có';
+
+    container.innerHTML = `
+        📊 <strong>Trung bình cộng:</strong> ${average}<br>
+        📈 <strong>Xu hướng 5 số gần nhất:</strong> ${last5.join(', ')} → <em>${trend}</em><br>
+        📌 <strong>Các số ra ổn định (≥ 2 lần):</strong> ${mostStable}<br>
+    `;
+}
+
+    function updateMiniChart() {
+  const containerId = 'miniChartContainer';
+  if (!document.getElementById(containerId)) {
+    const container = document.createElement('div');
+    container.id = containerId;
+    container.style.marginTop = '20px';
+    container.style.background = '#fff';
+    container.style.padding = '10px';
+    container.style.borderRadius = '12px';
+    container.style.boxShadow = '0 2px 6px rgba(0,0,0,0.1)';
+    container.innerHTML = `<h4>📊 Tần suất xuất hiện</h4><canvas id="miniChart" height="200"></canvas>`;
+    document.getElementById('right').appendChild(container);
+  }
+  const ctx = document.getElementById('miniChart').getContext('2d');
+  const freq = {};
+  for (let i = 3; i <= 18; i++) freq[i] = 0;
+  chartData.forEach(n => freq[n]++);
+  const labels = Object.keys(freq);
+  const values = Object.values(freq);
+  if (miniChart) miniChart.destroy();
+  miniChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Số lần xuất hiện',
+        data: values,
+        backgroundColor: '#42a5f5'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      }
+    }
+  });
+}
+    
+    function updateStrategy() {
+  const containerId = 'strategyAdvice';
+  let container = document.getElementById(containerId);
+  if (!container) {
+    container = document.createElement('div');
+    container.id = containerId;
+    container.style.marginTop = '20px';
+    container.style.padding = '15px';
+    container.style.background = '#e8f5e9';
+    container.style.border = '1px solid #a5d6a7';
+    container.style.borderRadius = '8px';
+    container.style.lineHeight = '1.6';
+    container.innerHTML = `<h4>💰 Chiến thuật đề xuất (theo tỉ lệ trả thưởng)</h4><div id="strategyText"></div>`;
+
+    const extraStats = document.getElementById('extraStats');
+    if (extraStats) {
+      extraStats.insertAdjacentElement('afterend', container);
+    } else {
+      document.getElementById('right').appendChild(container);
+    }
+  }
+  const count = {};
+  for (let i = 3; i <= 18; i++) count[i] = 0;
+  chartData.forEach(n => count[n]++);
+  const sorted = Object.entries(count).sort((a, b) => a[1] - b[1]);
+  const rareCandidates = sorted.slice(0, 3).map(([n]) => parseInt(n));
+  const bestReturns = rareCandidates.sort((a, b) => payoutMap[b] - payoutMap[a]);
+
+  let betGroup = '';
+  const last = chartData[chartData.length - 1];
+  if (last <= 9) betGroup = 'Lớn (x1.5)';
+  else if (last <= 11) betGroup = 'Nhỏ (x1.5)';
+  else betGroup = 'Hòa (x2)';
+
+  document.getElementById('strategyText').innerHTML = `
+    🎯 <strong>Số hiếm gần đây:</strong> ${rareCandidates.join(', ')}<br>
+    🧮 <strong>Ưu tiên chọn số:</strong> ${bestReturns.join(', ')} (tỉ lệ thắng cao + ít xuất hiện)<br>
+    📉 <strong>Chiến thuật theo chu kỳ:</strong> Sau khi ra ${last} → thử cược nhóm <strong>${betGroup}</strong><br>
+    ⚖️ <strong>Ưu tiên cược số có payout cao và tần suất thấp.</strong>
+  `;
+}
+
+  function updateAIRecommendation() {
+      let container = document.getElementById('aiRecommendation');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'aiRecommendation';
+        container.style.marginTop = '20px';
+        container.style.padding = '10px';
+        container.style.background = '#e3f2fd';
+        container.style.border = '1px solid #90caf9';
+        container.style.borderRadius = '8px';
+        container.innerHTML = `<h4>🤖 Gợi ý AI (Dựa trên biến động)</h4><div id="aiContent"></div>`;
+        const profitBox = document.getElementById('profitEstimation');
+        profitBox.insertAdjacentElement('afterend', container);
+      }
+      if (chartData.length < 5) {
+        document.getElementById('aiContent').innerHTML = `Cần ít nhất 5 số để AI phân tích.`;
+        return;
+      }
+      const recent = chartData.slice(-5);
+      const freq = {};
+      for (let i = 3; i <= 18; i++) freq[i] = 0;
+      chartData.forEach(n => freq[n]++);
+      const lowFreq = Object.entries(freq).filter(([k, v]) => v <= 1).map(([k]) => parseInt(k));
+      const nextSuggest = lowFreq.sort((a, b) => payoutMap[b] - payoutMap[a]).slice(0, 3);
+
+      let trend = 'không ổn định';
+      if (recent.every((v, i, arr) => i === 0 || v > arr[i - 1])) trend = 'tăng';
+      else if (recent.every((v, i, arr) => i === 0 || v < arr[i - 1])) trend = 'giảm';
+
+      document.getElementById('aiContent').innerHTML = `
+        📈 Xu hướng 5 số gần nhất: <strong>${trend}</strong><br>
+        🎯 Dự đoán số có thể ra tiếp theo: <strong>${nextSuggest.join(', ')}</strong> (payout cao, ít xuất hiện)
+      `;
+  }
+
+    function resetAll() {
+      chartData = [];
+      document.getElementById('numberInput').value = '';
+      document.getElementById('resultArea').innerHTML = '';
+      document.getElementById('predictionArea').innerHTML = '';
+      lineChart.data.labels = [];
+      lineChart.data.datasets[0].data = [];
+      lineChart.update();
+    }
+
+    updateChartSize();
+  </script>
+</body>
+</html>
