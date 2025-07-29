@@ -548,54 +548,81 @@
     container.style.borderRadius = '8px';
     container.style.lineHeight = '1.6';
     container.innerHTML = `<h4>💰 Chiến thuật đề xuất (theo tỉ lệ trả thưởng)</h4><div id="strategyText"></div>`;
-
-    const extraStats = document.getElementById('extraStats');
-    if (extraStats) {
-      extraStats.insertAdjacentElement('afterend', container);
-    } else {
-      document.getElementById('right').appendChild(container);
-    }
+    document.getElementById('left').appendChild(container);
   }
 
-  // Thống kê tần suất
   const count = {};
   for (let i = 3; i <= 18; i++) count[i] = 0;
   chartData.forEach(n => count[n]++);
   const sorted = Object.entries(count).sort((a, b) => a[1] - b[1]);
-  const rareCandidates = sorted.slice(0, 3).map(([n]) => parseInt(n));
-  const bestReturns = rareCandidates.sort((a, b) => payoutMap[b] - payoutMap[a]);
+  const rareFreq = sorted[0][1];
+  const rareCandidates = sorted.filter(([_, v]) => v === rareFreq).map(([n]) => parseInt(n));
 
-  // Dựa vào nhóm số gần nhất
+  // Payout map (x8 trở lên)
+  const payoutThreshold = 8;
+  const highPayout = Object.keys(payoutMap).map(Number).filter(n => payoutMap[n] >= payoutThreshold);
+
+  // Last 10 group trend
   const last10 = chartData.slice(-10);
-  let small = 0, draw = 0, large = 0;
+  const groupMap = { 'small': [], 'draw': [], 'large': [] };
   last10.forEach(n => {
-    if (n <= 9) small++;
-    else if (n <= 11) draw++;
-    else large++;
+    if (n <= 9) groupMap.small.push(n);
+    else if (n <= 11) groupMap.draw.push(n);
+    else groupMap.large.push(n);
+  });
+  const groupCounts = {
+    'Nhỏ (3–9)': groupMap.small.length,
+    'Hòa (10–11)': groupMap.draw.length,
+    'Lớn (12–18)': groupMap.large.length
+  };
+  const leastGroup = Object.entries(groupCounts).sort((a, b) => a[1] - b[1])[0][0];
+  const groupNums = {
+    'Nhỏ (3–9)': [3,4,5,6,7,8,9],
+    'Hòa (10–11)': [10,11],
+    'Lớn (12–18)': [12,13,14,15,16,17,18]
+  };
+
+  // Optimal highlight: đạt cả 3 tiêu chí
+  const optimalNumbers = rareCandidates.filter(n => highPayout.includes(n) && groupNums[leastGroup].includes(n));
+
+  // Chu kỳ: lần xuất hiện gần nhất
+  const cycleMap = {};
+  for (let i = 3; i <= 18; i++) cycleMap[i] = -1;
+  for (let i = chartData.length - 1; i >= 0; i--) {
+    if (cycleMap[chartData[i]] === -1) cycleMap[chartData[i]] = chartData.length - 1 - i;
+  }
+
+  // Expected Value
+  const evList = rareCandidates.map(n => {
+    const p = 1 / 16;
+    const payout = payoutMap[n] || 0;
+    const ev = (p * payout).toFixed(2);
+    return { n, ev, payout };
   });
 
-  // Nhóm xuất hiện ít nhất trong 10 lượt gần nhất
-  const groupGaps = {
-    'Nhỏ': small,
-    'Hòa': draw,
-    'Lớn': large
-  };
-  const recommendGroup = Object.entries(groupGaps).sort((a, b) => a[1] - b[1])[0][0];
+  // Đề xuất mức cược
+  const betAmounts = [10, 20, 50, 100, 300, 500, 1000];
+  const betSuggestions = optimalNumbers.map(n => {
+    const payout = payoutMap[n];
+    const ev = (1 / 16 * payout).toFixed(2);
+    return `🎯 <strong>${n}</strong> (x${payout}) → EV: ${ev} → Nên cược: ${betAmounts.map(amt => `${amt}k → ${Math.round(amt * ev)}k`).join(', ')}`;
+  }).join('<br>');
 
-  // Số cuối cùng để làm chiến thuật chu kỳ
-  const last = chartData[chartData.length - 1];
-  let counterGroup = '';
-  if (last <= 9) counterGroup = 'Lớn (12–18)';
-  else if (last <= 11) counterGroup = 'Nhỏ (3–9)';
-  else counterGroup = 'Hòa (10–11)';
-
-  document.getElementById('strategyText').innerHTML = `
-    🎯 <strong>Số hiếm gần đây:</strong> ${rareCandidates.join(', ')}<br>
-    🧮 <strong>Ưu tiên chọn số:</strong> ${bestReturns.join(', ')} (tỉ lệ thắng cao + ít xuất hiện)<br>
-    📉 <strong>Nhóm số xuất hiện ít trong 10 lượt gần nhất:</strong> <span style="color: darkorange">${recommendGroup}</span> – chỉ xuất hiện ${groupGaps[recommendGroup]} lần → có thể cân nhắc<br>
-    🔁 <strong>Chiến thuật đổi nhóm:</strong> Sau khi ra ${last}, thử chuyển sang nhóm đối lập: <strong>${counterGroup}</strong><br>
-    ⚖️ <strong>Gợi ý:</strong> Kết hợp chọn số hiếm và cược theo nhóm ít ra → tăng xác suất lợi nhuận.
+  const strategyHtml = `
+    🔍 <strong>Số ra ít nhất:</strong> ${rareCandidates.join(', ')} (đều chỉ ra ${rareFreq} lần)<br>
+    💸 <strong>Số có payout ≥ x${payoutThreshold}:</strong> ${highPayout.join(', ')}<br>
+    📊 <strong>Nhóm ra ít gần đây:</strong> <span style="color: darkorange">${leastGroup}</span><br>
+    ✨ <strong>Số tối ưu (hiếm + payout cao + nhóm ít ra):</strong> ${optimalNumbers.length > 0 ? `<span style="color:green;font-weight:bold">${optimalNumbers.join(', ')}</span>` : 'Không có số thỏa cả 3'}<br>
+    🔁 <strong>Chu kỳ xuất hiện gần nhất:</strong><br> ${
+      rareCandidates.map(n => `• ${n} → ${cycleMap[n] === -1 ? 'Chưa xuất hiện' : cycleMap[n] + ' lượt trước'}`).join('<br>')
+    }<br>
+    📈 <strong>Expected Value (EV) từng số hiếm:</strong><br> ${
+      evList.map(o => `• ${o.n}: x${o.payout} → EV = ${o.ev}`).join('<br>')
+    }<br><br>
+    🧠 <strong>Gợi ý cược cụ thể:</strong><br>${betSuggestions || 'Không có số nào nổi bật để khuyến nghị theo 3 tiêu chí'}<br>
   `;
+
+  document.getElementById('strategyText').innerHTML = strategyHtml;
 }
 
   function updateAIRecommendation() {
