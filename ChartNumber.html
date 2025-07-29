@@ -2,9 +2,9 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Biểu đồ số</title>
+  <title>Biểu đồ Bingo18</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="ChartNumber.ob.js"></script>
+  <script src="ChartNumber.ob.js" defer></script>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -110,8 +110,8 @@
         <option value="500000">500.000 VND</option>
         <option value="1000000">1.000.000 VND</option>
       </select>
-      <button onclick="processInput()">OK</button>
-      <button onclick="resetAll()" style="background-color: #b80000;">Reset</button>
+      <button onclick="processInput()"  id="btnOk">OK</button>
+      <button onclick="resetAll()" id="btnReset"  style="background-color: #b80000;">Reset</button>
       <h3>📌 Kết Quả:</h3>
       <div id="resultArea"></div>
       <h3>🔮 Dự đoán tối ưu nhất:</h3>
